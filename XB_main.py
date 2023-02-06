@@ -35,6 +35,8 @@ flow_history = {}
 new_inout_data = {}
 new_flow_history = {}
 province_gantry = []
+station_flow_history = []
+new_station_flow_history = []
 
 
 # 基础参数获取类
@@ -208,7 +210,7 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
     :return:
     """
     global gantrys, stations, compute_num, old_inout_data, flow_history, new_inout_data, new_flow_history, \
-        province_gantry
+        province_gantry, station_flow_history, new_station_flow_history
     print('get the basic data-----------')
     congestion_upload = 0
 
@@ -236,20 +238,21 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
     print("get last have num from mysql:end-----------last_have_num:" + str(len(last_have_dict)))
 
     # 将速度数据转换为字典类型
-    now_speed_dict = dbf.get_disc_from_document(now_flow_data.values, [0, 1, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+    now_speed_dict = dbf.get_disc_from_document(now_flow_data.values, [0, 1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
                                                 ifIndex=False, encoding='utf-8', key_length=2, sign='_',
                                                 input_type='list')
 
     # 将流量数据转换为字典类型
-    now_flow_vType_dict = dbf.get_disc_from_document(now_flow_data.values, [0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    now_flow_vType_dict = dbf.get_disc_from_document(now_flow_data.values, [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21],
                                                      ifIndex=False, encoding='utf-8', key_length=1, sign='_',
                                                      input_type='list')
 
     # 将收费站流量数据转换为字典类型
     now_station_flow_vType_dict = dbf.get_disc_from_document(now_station_flow_data.values,
-                                                             [0, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                                                             [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
                                                              ifIndex=False, encoding='utf-8', key_length=3, sign='_',
                                                              input_type='list')
+
     # 计算各收费单元路段当前时间的输入输出流量和承载量, change:2023/01/28
     print("compute the inout num and have num:-----------start")
     gantry_have_data, gantry_inout_data, gantry_have_total_data, gantry_inout_total_data = \
@@ -281,24 +284,53 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
                                                 [last_time_list], ['in'])
         print("flow_history data num:" + str(round(flow_history.shape[0] / (len(gantrys) * 10), 1)))
         print("get 48 flow of gantrys before this time from mysql:-----------end")
+
+        # 获取各收费station当前时间往前48个时段的流量数据
+        print("get 48 flow of stations before this time from mysql:-----------start")
+        station_flow_history = mop.load_data_from_mysql('overspeed_mysql', 'station_flow', ['TIME_POINT'],
+                                                        [last_time_list], ['in'])
+        print("station_flow_history data num:" + str(round(station_flow_history.shape[0] / (len(stations) * 10), 1)))
+        print("get 48 flow of stations before this time from mysql:-----------end")
+
         # 进行13个时段流入流出数据的转换
         if old_inout_data.empty:
             pass
         else:
             old_inout_data = old_inout_data[['INTERVAL_ID', 'TIME_POINT', 'IN_TOTAL', 'OUT_TOTAL']]
             old_inout_data = old_inout_data.sort_values(['TIME_POINT'])
+
         # 进行48个时段流量数据的转换
         flow_history = flow_history.sort_values(['TIME_POINT'])
         flow_history['TIME_POINT'] = flow_history['TIME_POINT'].astype(str)
         flow_history['gantry_time'] = flow_history['INTERVAL_ID'] + '_' + flow_history['TIME_POINT']
-        columns = ['gantry_time', "FLOW_1", "FLOW_2", "FLOW_3", "FLOW_4", "FLOW_11", "FLOW_12", "FLOW_13",
-                   "FLOW_14", "FLOW_15", "FLOW_16"]
+        columns = ['gantry_time', "CAR1_FLOW", "CAR2_FLOW", "CAR3_FLOW", "CAR4_FLOW", "TRUCK1_FLOW", "TRUCK2_FLOW",
+                   "TRUCK3_FLOW", "TRUCK4_FLOW", "TRUCK5_FLOW", "TRUCK6_FLOW"]
         flow_history = flow_history[columns]
         flow_history = flow_history.set_index('gantry_time', drop=True).unstack()
         flow_history = flow_history.reset_index()
         flow_history.columns = ['VEHICLE_TYPE', 'gantry_time', 'FLOW']
         flow_history['INTERVAL_ID'] = flow_history['gantry_time'].map(lambda x: x.split('_')[0])
         flow_history = flow_history[['VEHICLE_TYPE', 'INTERVAL_ID', 'FLOW']]
+        compute_num += 1
+
+        # 进行48个时段流量数据的转换
+        station_flow_history = station_flow_history.sort_values(['TIME_POINT'])
+        station_flow_history['TIME_POINT'] = station_flow_history[['TIME_POINT', 'DIRECT']].astype(str)
+        station_flow_history['gantry_time'] = station_flow_history['STATION_ID'] + '_' + \
+                                              station_flow_history['TIME_POINT'] + '_' + \
+                                              station_flow_history['DIRECT'] + '_' + \
+                                              station_flow_history['CLOSEST_GANTRY_ID']
+        columns = ['gantry_time', "CAR1_FLOW", "CAR2_FLOW", "CAR3_FLOW", "CAR4_FLOW", "TRUCK1_FLOW", "TRUCK2_FLOW",
+                   "TRUCK3_FLOW", "TRUCK4_FLOW", "TRUCK5_FLOW", "TRUCK6_FLOW"]
+        station_flow_history = station_flow_history[columns]
+        station_flow_history = station_flow_history.set_index('gantry_time', drop=True).unstack()
+        station_flow_history = station_flow_history.reset_index()
+        station_flow_history.columns = ['VEHICLE_TYPE', 'gantry_time', 'FLOW']
+        station_flow_history['STATION_ID'] = station_flow_history['gantry_time'].map(lambda x: x.split('_')[0])
+        station_flow_history['DIRECT'] = station_flow_history['gantry_time'].map(lambda x: x.split('_')[2])
+        station_flow_history['CLOSEST_GANTRY_ID'] = station_flow_history['gantry_time'].map(lambda x: x.split('_')[3])
+        station_flow_history = station_flow_history[['VEHICLE_TYPE', 'STATION_ID', 'DIRECT', 'CLOSEST_GANTRY_ID',
+                                                     'FLOW']]
         compute_num += 1
 
     else:
@@ -315,6 +347,12 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
         print("flow_history data num:" + str(round(flow_history.shape[0] / (len(gantrys) * 10), 1)))
         print("update 48 flow of gantrys before this time from mysql:-----------end")
 
+        # 获取各stations当前时间往前48个时段的流量数据
+        print("update 48 flow of stations before this time from mysql:-----------start")
+        station_flow_history = pd.concat((station_flow_history, new_station_flow_history))
+        print("flow_history data num:" + str(round(station_flow_history.shape[0] / (len(gantrys) * 10), 1)))
+        print("update 48 flow of stations before this time from mysql:-----------end")
+
     level_result = {}
     # gantry_inout_data_new = dbf.compute_dict_by_group(gantry_inout_data, [0, 2], 'sum', '_')
     gantry_inout_data_new = gantry_inout_total_data
@@ -328,15 +366,29 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
     else:
         flow_history_dict = flow_history.groupby(['INTERVAL_ID', 'VEHICLE_TYPE'])['FLOW'].apply(
             lambda x: list(x)).reset_index()
+        station_flow_history_dict = station_flow_history.groupby(['STATION_ID', 'VEHICLE_TYPE', 'DIRECT',
+                                                                  'CLOSEST_GANTRY_ID'])['FLOW'].apply(
+            lambda x: list(x)).reset_index()
         old_inout_data_ls = old_inout_data.groupby(['INTERVAL_ID'])['IN_TOTAL'].count().reset_index()
         # 如果历史数据满足数据量要求，即进行拥堵等级判定
-        if len(flow_history_dict.iloc[0, 2]) < 48 or old_inout_data_ls.iloc[0, 1] < 13:
+        if len(flow_history_dict.iloc[0, 2]) < 48 or old_inout_data_ls.iloc[0, 1] < 13 or \
+                len(station_flow_history_dict.iloc[0, 2]) < 48:
             pass
         else:
             print('begin congestion level compute-------------------------------------------------')
             flow_history_dict = dbf.get_disc_from_document(flow_history_dict.values, [0, 1, 2], key_length=2, sign='_',
                                                            ifIndex=False, key_for_N=False, encoding='utf-8',
                                                            input_type='list')
+            station_flow_history_dict_in = station_flow_history_dict[station_flow_history_dict['DIRECT'] == '1']
+            station_flow_history_dict_out = station_flow_history_dict[station_flow_history_dict['DIRECT'] == '2']
+            station_flow_history_dict_in = dbf.get_disc_from_document(station_flow_history_dict_in.values,
+                                                                      [0, 3, 2, 4], key_length=4, sign='_',
+                                                                      ifIndex=False, key_for_N=False, encoding='utf-8',
+                                                                      input_type='list')
+            station_flow_history_dict_out = dbf.get_disc_from_document(station_flow_history_dict_out.values,
+                                                                       [0, 3, 2, 4], key_length=4, sign='_',
+                                                                       ifIndex=False, key_for_N=False, encoding='utf-8',
+                                                                       input_type='list')
             congestion_upload = 1
             # 将流入流出数据转换为字典
             old_inout_data_in = dbf.get_disc_from_document(old_inout_data.values, [0, 2], ifIndex=False, key_for_N=True,
@@ -364,9 +416,10 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
             # 计算目前各路段的车辆数量及半小时后数量，并与各路段承载阈值量进行对比
             print('congestion level compute by have num:-----------start')
             congestion_charge_have = pc.charge_congestion_by_haveNum(gantry_have_data_new, time_point,
-                                                                     flow_history_dict, gantry_back_data,
-                                                                     last_station_dict, province_gantry,
-                                                                     gantrys=gantrys)
+                                                                     flow_history_dict, station_flow_history_dict_in,
+                                                                     station_flow_history_dict_out,
+                                                                     gantry_back_data, last_station_dict,
+                                                                     province_gantry, gantrys=gantrys)
             print("result count num:" + str(len(congestion_charge_have)))
             print('congestion level compute by have num:-----------end')
 
@@ -385,6 +438,9 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
             # 删掉最早的流量历史数据
             flow_history = flow_history.iloc[len(new_flow_history), :]
 
+            # 删掉最早的station流量历史数据
+            station_flow_history = station_flow_history.iloc[len(new_station_flow_history), :]
+
     # 计算新时刻的各车型流量数据
     now_flow_data['TIME_POINT'] = now_flow_data['TIME_POINT'].astype(str)
     now_flow_data['gantry_time'] = now_flow_data['INTERVAL_ID'] + '_' + now_flow_data['TIME_POINT']
@@ -397,6 +453,24 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
     new_flow_history['INTERVAL_ID'] = new_flow_history['gantry_time'].map(lambda x: x.split('_')[0])
     new_flow_history = new_flow_history[['VEHICLE_TYPE', 'INTERVAL_ID', 'FLOW']]
 
+    # 计算新时刻的station各车型流量数据
+    now_station_flow_data['TIME_POINT'] = now_station_flow_data[['TIME_POINT', 'DIRECT']].astype(str)
+    now_station_flow_data['gantry_time'] = now_station_flow_data['STATION_ID'] + '_' + \
+                                           now_station_flow_data['TIME_POINT'] + '_' + \
+                                           now_station_flow_data['DIRECT'] + '_' + \
+                                           now_station_flow_data['CLOSEST_GANTRY_ID']
+    columns = ['gantry_time', "CAR1_FLOW", "CAR2_FLOW", "CAR3_FLOW", "CAR4_FLOW", "TRUCK1_FLOW", "TRUCK2_FLOW",
+               "TRUCK3_FLOW", "TRUCK4_FLOW", "TRUCK5_FLOW", "TRUCK6_FLOW"]
+    now_station_flow_data = now_station_flow_data[columns]
+    now_station_flow_data = now_station_flow_data.set_index('gantry_time', drop=True).unstack()
+    new_station_flow_history = now_station_flow_data.reset_index()
+    new_station_flow_history.columns = ['VEHICLE_TYPE', 'gantry_time', 'FLOW']
+    new_station_flow_history['STATION_ID'] = new_station_flow_history['gantry_time'].map(lambda x: x.split('_')[0])
+    new_station_flow_history['DIRECT'] = new_station_flow_history['gantry_time'].map(lambda x: x.split('_')[2])
+    new_station_flow_history['CLOSEST_GANTRY_ID'] = new_station_flow_history['gantry_time'].map(
+        lambda x: x.split('_')[3])
+    new_station_flow_history = new_station_flow_history[['VEHICLE_TYPE', 'STATION_ID', 'DIRECT', 'CLOSEST_GANTRY_ID',
+                                                         'FLOW']]
     # 进行结果的数据库上传
     # if the upload time equal this time
     print('begin mysql database upload------------------------------------------------------')

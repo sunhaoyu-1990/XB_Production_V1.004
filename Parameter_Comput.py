@@ -1415,10 +1415,12 @@ def compute_XB_gantry_num():
 '''
 
 
-def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, gantry_back_data, last_station_dict,
-                                 province_gantrys, gantrys=[]):
+def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, station_flow_history_dict_in,
+                                 station_flow_history_dict_out, gantry_back_data,
+                                 last_station_dict, province_gantrys, gantrys=[]):
     """
     进行所有门架当前承载量与阈值的对比，如果超出阈值同时半个小时候后仍超出阈值及判定为预计拥堵
+    :param station_flow_history_dict_in:
     :param list basic_data: 包括当前时刻及之前48个时刻的流量数据
     :param str this_time: 当前时刻
     :param dict now_have_num: 当前各门架承载量字典
@@ -1468,12 +1470,12 @@ def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, gantry_bac
         # 获取未来半小时收费站输入的流量预测
         station_in_flow = compute_future_flow_of_gantry_station(6,
                                                                 last_station_dict[out_data[i]] + '_' + out_data[i][:-2],
-                                                                this_time, basic_data, 'station_in')
+                                                                this_time, station_flow_history_dict_in, 'station_in')
         # 获取未来半小时收费站输出的流量预测
         station_out_flow = compute_future_flow_of_gantry_station(6,
                                                                  last_station_dict[out_data[i]] + '_' +
                                                                  last_gantry[:-2],
-                                                                 this_time, basic_data, 'station_out')
+                                                                 this_time, station_flow_history_dict_out, 'station_out')
         # 计算未来半个小时后的承载量
         try:
             future_have_num = now_have_num[out_data[i]] + dbf.compute_dict_by_group(last_gantry_flow, [], 'total_sum',
@@ -1728,6 +1730,7 @@ def compute_future_flow_of_gantry_station(compute_no, key_name, this_time, basic
 
             elif treat_type == 'station_in':
                 vehicle_type_list = [vehicle_type[0]]
+                vehicle_type_list.extend(basic_data[key_name + '_' + vehicle_type[0]])
                 vehicle_type_list.extend(time_data)
                 if k == 0:
                     max_list = dbf.get_disc_from_document(
@@ -1748,6 +1751,7 @@ def compute_future_flow_of_gantry_station(compute_no, key_name, this_time, basic
 
             elif treat_type == 'station_out':
                 vehicle_type_list = [vehicle_type[0]]
+                vehicle_type_list.extend(basic_data[key_name + '_' + vehicle_type[0]])
                 vehicle_type_list.extend(time_data)
                 if k == 0:
                     max_list = dbf.get_disc_from_document(
