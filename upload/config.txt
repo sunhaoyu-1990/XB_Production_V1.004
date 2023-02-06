@@ -1,0 +1,5 @@
+host:192.168.0.204
+port:3306
+user:root
+passwd:GGT@82339319
+db:gaoguantong

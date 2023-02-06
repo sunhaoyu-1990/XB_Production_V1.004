@@ -1,0 +1,11 @@
+基础文件,更新时间,文件位置,说明,更新方式
+gantry_type_time_statistic_data,2022/8/5,./Data_Origin,各收费单元之间行驶时长统计数据,代码更新
+tollgrantry,2021/11/18,./Data_Origin,门架信息表,第三方更新
+tollinterval,2022/9/16,./Data_Origin,收费单元信息表,第三方更新
+tollinterval_near_pro,2021/12/7,./Data_Origin,收费单元信息表（省界临近门架更改类型为省界门架）,代码更新
+tom_noderelation,2022/3/10,./Data_Origin,标准路径数据表,第三方更新
+gantry_model,2022/9/1,./Network_Parameter_old,门架各预测模型参数文件,代码更新
+station_model,2022/9/1,./Network_Parameter_old,收费站各预测模型参数文件,代码更新
+DTW_threshold_data,2022/10/11,./basic_data/statistic_data,各路段DTW阈值表,代码更新
+gantry_speed_threshold,2022/10/11,./basic_data/statistic_data,各路段速度阈值表,代码更新
+have_threshold_data,2022/9/16,./basic_data/statistic_data,各路段承载量阈值表,代码更新
