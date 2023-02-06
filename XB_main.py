@@ -444,8 +444,8 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
     # 计算新时刻的各车型流量数据
     now_flow_data['TIME_POINT'] = now_flow_data['TIME_POINT'].astype(str)
     now_flow_data['gantry_time'] = now_flow_data['INTERVAL_ID'] + '_' + now_flow_data['TIME_POINT']
-    columns = ['gantry_time', "FLOW_1", "FLOW_2", "FLOW_3", "FLOW_4", "FLOW_11", "FLOW_12", "FLOW_13",
-               "FLOW_14", "FLOW_15", "FLOW_16"]
+    columns = ['gantry_time', "CAR1_FLOW", "CAR2_FLOW", "CAR3_FLOW", "CAR4_FLOW", "TRUCK1_FLOW", "TRUCK2_FLOW",
+               "TRUCK3_FLOW", "TRUCK4_FLOW", "TRUCK5_FLOW", "TRUCK6_FLOW"]
     now_flow_data = now_flow_data[columns]
     now_flow_data = now_flow_data.set_index('gantry_time', drop=True).unstack()
     new_flow_history = now_flow_data.reset_index()

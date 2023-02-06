@@ -1678,8 +1678,8 @@ def compute_future_flow_of_gantry_station(compute_no, key_name, this_time, basic
     """
     gantry_flow = {}  # 保存门架预测流量数据
     station_flow = {}  # 保存收费站预测流量数据
-    vehicle_types = [['FLOW_1'], ['FLOW_2'], ['FLOW_3'], ['FLOW_4'], ['FLOW_11'], ['FLOW_12'], ['FLOW_13'], ['FLOW_14'],
-                     ['FLOW_15'], ['FLOW_16']]
+    vehicle_types = [['CAR1_FLOW'], ['CAR2_FLOW'], ['CAR3_FLOW'], ['CAR4_FLOW'], ['TRUCK1_FLOW'], ['TRUCK2_FLOW'],
+                     ['TRUCK3_FLOW'], ['TRUCK4_FLOW'], ['TRUCK5_FLOW'], ['TRUCK6_FLOW']]
 
     # 获取上一个收费站的上站预测模型参数
     if treat_type == 'gantry':
