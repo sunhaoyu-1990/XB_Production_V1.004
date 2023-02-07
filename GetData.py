@@ -1,7 +1,7 @@
 # 数据库操作算法包（主要是操作各类数据库的基本动作）
 import csv
 import pymysql
-# import cx_Oracle as cx
+import cx_Oracle as cx
 import pandas as pd
 
 
@@ -9,56 +9,69 @@ class OperationMysql:
     """
     Mysql数据库操作对象创建
     """
-    def __init__(self, host, port, user, passwd, db):
+    def __init__(self, host, port, user, passwd, db_name, sql_type='mysql'):
         # 创建一个连接数据库的对象
         # 1.可以通过对象穿件时赋值数据库各参数；2.可以从已经存下的各数据库中选择各参数
-        self.conn = pymysql.connect(
-            # 部中心数据库
-            # host='60.205.149.33',  # 连接的数据库服务器主机名
-            # port=18607,  # 数据库端口号
-            # user='cx',  # 数据库登录用户名
-            # passwd='Lvtongcx2019',
-            # db='freeway_appointment',
+        if sql_type == 'mysql':
+            self.conn = pymysql.connect(
+                # 部中心数据库
+                # host='60.205.149.33',  # 连接的数据库服务器主机名
+                # port=18607,  # 数据库端口号
+                # user='cx',  # 数据库登录用户名
+                # passwd='Lvtongcx2019',
+                # db='freeway_appointment',
 
-            # 陕西绿通车
-            # host='60.205.149.33',  # 连接的数据库服务器主机名
-            # port=3306,  # 数据库端口号
-            # user='cx',  # 数据库登录用户名
-            # passwd='cd2017',
-            # db='lvtongche',
+                # 陕西绿通车
+                # host='60.205.149.33',  # 连接的数据库服务器主机名
+                # port=3306,  # 数据库端口号
+                # user='cx',  # 数据库登录用户名
+                # passwd='cd2017',
+                # db='lvtongche',
 
-            # 收费中心
-            # host='172.16.1.54',
-            # port=3306,  # 数据库端口号
-            # user='zhidu',  # 数据库登录用户名
-            # passwd='sjfx2018',
-            # db='road_infrastructure',  # 数据库名称
+                # 收费中心
+                # host='172.16.1.54',
+                # port=3306,  # 数据库端口号
+                # user='zhidu',  # 数据库登录用户名
+                # passwd='sjfx2018',
+                # db='road_infrastructure',  # 数据库名称
 
-            # 测试数据库
-            # host='192.168.0.95',
-            # port=3306,  # 数据库端口号
-            # user='root',  # 数据库登录用户名
-            # passwd='123',
-            # db='freeway_appointment',  # 数据库名称
+                # 测试数据库
+                # host='192.168.0.95',
+                # port=3306,  # 数据库端口号
+                # user='root',  # 数据库登录用户名
+                # passwd='123',
+                # db='freeway_appointment',  # 数据库名称
 
-            # 全路网稽查数据库
-            # host='192.168.0.182',
-            # port=3306,  # 数据库端口号
-            # user='root',  # 数据库登录用户名
-            # passwd='123456',
-            # db='vehicle_check',  # 数据库名称
+                # 全路网稽查数据库
+                # host='192.168.0.182',
+                # port=3306,  # 数据库端口号
+                # user='root',  # 数据库登录用户名
+                # passwd='123456',
+                # db='vehicle_check',  # 数据库名称
 
-            host=host,
-            port=port,  # 数据库端口号
-            user=user,  # 数据库登录用户名
-            passwd=passwd,
-            db=db,  # 数据库名称
+                host=host,
+                port=port,  # 数据库端口号
+                user=user,  # 数据库登录用户名
+                passwd=passwd,
+                db=db_name,  # 数据库名称
 
-            charset='utf8',  # 连接编码
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        # 使用cursor()方法创建一个游标对象，用于操作数据库
-        self.cur = self.conn.cursor()
+                charset='utf8',  # 连接编码
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            # 使用cursor()方法创建一个游标对象，用于操作数据库
+            self.cur = self.conn.cursor()
+        else:
+            self.conn = cx.connect(
+                host=host,
+                port=port,  # 数据库端口号
+                user=user,  # 数据库登录用户名
+                passwd=passwd,
+                db=db_name,  # 数据库名称
+                charset='utf8',  # 连接编码
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            # 使用cursor()方法创建一个游标对象，用于操作数据库
+            self.cur = self.conn.cursor()
 
     # 进行数据库的查询,2022/10/31 update
     def search_one(self, sql_string, ifEnd=True):
@@ -298,29 +311,6 @@ class OperationMysql:
         data = self.search_one(sql_string)
         data = pd.DataFrame(data)
         return data
-
-
-class OperationOracle:
-    """
-    建立Oracle数据库操作对象
-    """
-    # def __init__(self):
-    #     # 创建一个连接数据库的对象
-    #     self.conn = cx.connect('dbbase2020', 'Sxld2016', '172.16.1.54:1521/orcl')
-    #
-    #     self.cursor = self.conn.cursor()
-    #
-    # # 查询一条数据
-    # def search_one(self, sql):
-    #     try:
-    #         self.cursor.execute(sql)
-    #         col = [x[0] for x in self.cursor.description]
-    #         result = self.cursor.fetchall()  # 使用 fetchall()方法获取所有数据.只显示一行结果
-    #         # result = self.cur.fetchall()  # 显示所有结果
-    #     finally:
-    #         self.cursor.close()
-    #     data = pd.DataFrame(result, columns=col)
-    #     return data
 
 
 if __name__ == '__main__':

@@ -1485,6 +1485,8 @@ def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, station_fl
                                                         '') - dbf.compute_dict_by_group(station_out_flow, [],
                                                                                         'total_sum', '')
         except:
+            #
+
             future_have_num = 0
 
         # ≈–∂œ «∑Ò≥¨≥ˆ„–÷µ

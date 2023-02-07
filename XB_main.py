@@ -41,13 +41,11 @@ new_station_flow_history = []
 
 # 基础参数获取类
 class parameter:
-    Gantrys = mop.load_data_from_mysql('overspeed_mysql', 'road_divide_flow_config', ['ROAD_ID'], ['G0030610030'],
-                                       ['='], get_feature=['TOLL_INTERVALS']).values
-    Gantrys = Gantrys[0][0].split('|')
+    Gantrys = mop.load_data_from_mysql('overspeed_oracle', 'TOLLINTERVAL', [], [], [], get_feature=['ID']).values
+    Gantrys = Gantrys.values.tolist()
 
-    Stations = mop.load_data_from_mysql('overspeed_mysql', 'road_divide_flow_config', ['ROAD_ID'], ['G0030610030'],
-                                        ['='], get_feature=['TOLL_INTERVALS']).values
-    Stations = Stations[0][0].split('|')
+    Stations = mop.load_data_from_mysql('overspeed_oracle', 'TOLLSTATION', [], [], [], get_feature=['ID']).values
+    Stations = Stations.values.tolist()
     # 获取收费单元和上一个单元的对应关系字典
     gantry_back_data = dbf.get_disc_from_document('./Data_Origin/tom_noderelation.csv',
                                                   ['EXROADNODEID', 'ENROADNODEID'],
@@ -166,10 +164,10 @@ def start_function_by_period():
     global gantrys, stations, start_num, gantry_back_data, last_station_dict, start_stake_dict, \
         end_stake_dict, speed_threshold_data, province_gantry
     if start_num == 0:
-        # gantrys = vars(parameter)['Gantrys']
-        gantrys = ['G000561001000110', 'G000561001000210']
-        # stations = vars(parameter)['Stations']
-        stations = ['G0005610010010', 'G0005610010110']
+        gantrys = vars(parameter)['Gantrys']
+        # gantrys = ['G000561001000110', 'G000561001000210']
+        stations = vars(parameter)['Stations']
+        # stations = ['G0005610010010', 'G0005610010110']
         gantry_back_data = vars(parameter)['gantry_back_data']
         last_station_dict = vars(parameter)['last_station_dict']
         start_stake_dict = vars(parameter)['start_stake_dict']

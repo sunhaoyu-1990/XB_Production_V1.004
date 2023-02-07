@@ -14,7 +14,8 @@ def get_parameter_with_keyword(keys):
     :param keys:关键字
     :return:
     """
-    config = {}
+    config_mysql = {}
+    config_oracle = {}
     with open('./upload/config_test.txt') as f:
         for i, row in enumerate(f):
             if row == '':
@@ -23,9 +24,9 @@ def get_parameter_with_keyword(keys):
                 row = row.split(':')
                 row[-1] = row[-1][:-1]
                 if row[0] == 'port':
-                    config[row[0]] = int(row[1])
+                    config_mysql[row[0]] = int(row[1])
                 else:
-                    config[row[0]] = row[1]
+                    config_mysql[row[0]] = row[1]
 
     parameter_disc = {
         # 门架数据清洗各关键字和对应参数
@@ -273,7 +274,8 @@ def get_parameter_with_keyword(keys):
         # XB数据库
         # 'overspeed_mysql': {'host': '192.168.17.16', 'port': 3306, 'user': 'root', 'passwd': '123',
         #                     'db': 'overspeed'},
-        'overspeed_mysql': config,
+        'overspeed_mysql': config_mysql,
+        'overspeed_oracle': config_oracle,
         # 'overspeed_mysql': {'host': '192.168.0.170', 'port': 3306, 'user': 'overspeed', 'passwd': 'mkdir@2021',
         #                     'db': 'overspeed'},
 

@@ -1,67 +1,68 @@
 import pandas as pd
 import Data_Basic_Function as dbf
 import os
+
 '''
 本代码用于所有文件处理函数及过程
 目前实现功能：1.指定文件的数据插入；2.文件读取；3.文件内容合并；4.文件内各列内容排序；5.读取path下，同一类的文件
 '''
 
-class Document_Action(object):
-    '''
 
-    '''
-    def __init__(self,path=None):
-        '''
+class Document_Action(object):
+    """"""
+
+    def __init__(self, path=None):
+        """
         :param path: 文件地址
-        '''
-        if path != None:
+        """
+        if path is not None:
             self.path = path
             # 获取文件的类型
             self.type = path.split('.')[-1]
 
-    def load_path(self,path=None,parse_time=None):
-        '''
+    def load_path(self, path=None, parse_time=None):
+        """
         :param path:文件地址
         :param parse_time:时间转换列
         :return: 返回读取到的文档内容，类型为DataFrame，若报错，返回None
         问题点：还无法读取全部类型数据
-        '''
-        if path != None:
+        """
+        if path is not None:
             self.path = path
             self.type = path.split('.')[-1]
         try:
             if self.type == 'csv' or self.type == 'txt':
                 try:
-                    data = pd.read_csv(self.path,parse_dates=parse_time).drop(['Unnamed: 0'],axis=1)
+                    data = pd.read_csv(self.path, parse_dates=parse_time).drop(['Unnamed: 0'], axis=1)
                 except:
-                    data = pd.read_csv(self.path,parse_dates=parse_time)
+                    data = pd.read_csv(self.path, parse_dates=parse_time)
             elif self.type == 'h5':
-                data = pd.read_hdf(self.path,parse_dates=parse_time)
+                data = pd.read_hdf(self.path, parse_dates=parse_time)
             elif self.type == 'xlsx':
-                data = pd.read_excel(self.path,parse_dates=parse_time)
+                data = pd.read_excel(self.path, parse_dates=parse_time)
             elif self.type == 'json':
-                data = pd.read_json(self.path,parse_dates=parse_time)
+                data = pd.read_json(self.path, parse_dates=parse_time)
             else:
-                with open(self.path,'r') as file:
+                with open(self.path, 'r') as file:
                     data = file.read()
         except:
             data = None
 
         return data
 
-    def load_more_Document(self,name,path=None):
-        '''
+    def load_more_Document(self, name, path=None):
+        """
         读取目录下同一类名字的多个文件
         :param name: 文件相同名称
         :param path: 新的目录地址，不输入，为默认地址
         :return:数据集，以数组形式返回
-        '''
-        if path != None:
+        """
+        if path is not None:
             self.path = path
         static_path = self.path
         list_dir = os.listdir(self.path)
         data_list = []
-        try:   # 循环文件名列表，
+        try:  # 循环文件名列表，
             for dir in list_dir:
                 if dir.find(name) >= 0:
                     path1 = static_path + '/' + dir
@@ -72,19 +73,20 @@ class Document_Action(object):
             return None
 
     def cut_(self):
-        '''
+        """
         去掉
         :return:
-        '''
+        """
 
     # 存储文档
-    def Save_Document(self,data,path=None):
-        '''
+    def Save_Document(self, data, path=None):
+        """
         存储DataFrame类型的数据
+        :param data:
         :param path: 保存位置
         :return: 无返回
-        '''
-        if path != None:
+        """
+        if path is not None:
             self.type = path.split('.')[-1]
             self.path = path
         try:
@@ -98,7 +100,7 @@ class Document_Action(object):
             elif self.type == 'json':
                 data.to_json(self.path)
             else:
-                with open(self.path,'w') as file:
+                with open(self.path, 'w') as file:
                     file.write(data)
         except:
             print('保存失败')
@@ -115,6 +117,7 @@ class Document_Action(object):
 def path_of_holder_document(path, sort=False, replace_path=''):
     """
     输入文件夹地址，返回文件夹下所有文件的完整地址数组
+    :param path:
     :param sort: 是否对查询到的目录进行排序
     :param replace_path: 是否对查询到的地址的根目录进行替换，文件夹转移时使用，为空字符串时表示不进行，不为空时为替换的地址
     :param paths:文件夹地址
@@ -150,10 +153,10 @@ def cut_dir_list(path, cut_num, sort=False):
     if type(path) == list:
         paths_list = path
     else:
-        paths_list = path_of_holder_document(path, sort)   # 读取地址下的所有文件地址，并以数组形式返回
+        paths_list = path_of_holder_document(path, sort)  # 读取地址下的所有文件地址，并以数组形式返回
     path_all = {}
     for i in range(cut_num):
-        path_all[i+1] = []   # 建立多个key-value，用于存放拆分后的地址
+        path_all[i + 1] = []  # 建立多个key-value，用于存放拆分后的地址
     for i in range(len(paths_list)):
         path_all[(i % cut_num) + 1].append(paths_list[i])
     return path_all
@@ -193,7 +196,7 @@ def get_key_of_columns_with_transform(path, features, transform, parameters):
                         vehicle.append(row[col][parameters[i]:])
                     if transform[i] == 'delete':
                         str_ls = row[col][:parameters[i]]
-                        str_ls += row[col][parameters[i]+1:]
+                        str_ls += row[col][parameters[i] + 1:]
                         vehicle.append(str_ls)
     return vehicle
 
@@ -213,7 +216,7 @@ def get_all_file_from_dir(dir_path):
     :return:
     """
     file_path = []  # 用于保存所有文件的地址
-    fold_path = [] # 保存所有文件夹的相对地址
+    fold_path = []  # 保存所有文件夹的相对地址
     # 获取该路径下的所有文件路径
     paths = path_of_holder_document(dir_path)
     paths_part = os.listdir(dir_path)
@@ -259,6 +262,7 @@ def load_data_with_path(path):
 def get_path_with_filter(path, cut_length, filter_sign, filter_value):
     """
     path filter
+    :param cut_length:
     :param path:
     :param filter_sign:
     :param filter_value:
@@ -286,5 +290,23 @@ def get_path_with_filter(path, cut_length, filter_sign, filter_value):
             if filter_value[0] < pa[cut_length[0]:cut_length[1]] < filter_value[1]:
                 path_list.append(pa)
 
-
     return path_list
+
+
+'''
+    创建时间：2023/02/07
+    完成时间：2023/02/07
+    功能：对报错的关键信息进行保存
+    修改时间：
+'''
+
+
+def save_data_with_path(path):
+    """
+    load data use with
+    :param path:
+    :return:
+    """
+    print(path)
+    with open(path) as f:
+        return f
