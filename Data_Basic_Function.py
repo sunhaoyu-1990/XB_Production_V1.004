@@ -2529,38 +2529,31 @@ def get_feature_random(features, random_rate=[], random_type='', feature_type='s
     return result
 
 
-def ls_function():
-    # 获取所有的门架ID
-    gantrys_list = []
-    paths = dop.path_of_holder_document('')
-    for path in paths:
-        gantrys_list.append(path.rsplit('/')[1].split('.')[0])
-
-    # 读取阈值文件内容
-    # 保存阈值文件内门架ID
-    threshold_data = []
-    have_gantry_list = []
-    with open('') as f:
-        for i, row in enumerate(f):
-            row = row.split(',')
-            row[-1] = row[-1][:-2]
-            threshold_data.append(row)
-            have_gantry_list.append(row[0])
-
-    # 遍历所有门架ID，如何不在阈值文件内，就赋予默认值，并保存在文件中
-    for gantry in gantrys_list:
-        if gantry not in have_gantry_list:
-            threshold_data.append([gantry, 400])
-
-    # 保存
-    with open('') as f:
-        write = csv.writer(f)
-        write.writerows(threshold_data)
+'''
+    创建时间：2023/2/7
+    完成时间：2023/2/7
+    功能：根据提供的字符串和要拼接的下标，进行内容拼接
+    关键字：
+    修改时间：
+'''
 
 
-# def create_parameter():
-#     #
+def gather_string_with_list(data, index_list, sign):
+    """
+    根据提供的字符串和要拼接的下标，进行内容拼接
+    :param sign: 拼接的连接符
+    :param data: 输入的合并数组
+    :param index_list: 进行合并的元素的下标
+    :return:
+    """
+    result_string = ''
+    for i in range(len(index_list)):
+        if i == 0:
+            result_string += str(data[index_list[i]])
+        else:
+            result_string += sign + str(data[index_list[i]])
 
+    return result_string
 
 
 if __name__ == '__main__':

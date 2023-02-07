@@ -1,3 +1,5 @@
+import csv
+
 import pandas as pd
 import Data_Basic_Function as dbf
 import os
@@ -301,12 +303,33 @@ def get_path_with_filter(path, cut_length, filter_sign, filter_value):
 '''
 
 
-def save_data_with_path(path):
+def save_data_of_important(data, save_path, save_type, charge_features=None, upload_features = None):
     """
-    load data use with
-    :param path:
+    对报错的关键信息进行保存
+    :param upload_features: 需要更新的数据字段
+    :param charge_features: 查找的数据字段
+    :param save_type: 数据保存形式，check_save为检查原有文件并更新，save为直接保存
+    :param save_path: 存储地址
+    :param data: 存储目标数据
     :return:
     """
-    print(path)
-    with open(path) as f:
-        return f
+    if save_type == 'check_save':
+        length = len(charge_features)
+        charge_features.extend(upload_features)
+        # 获取原有数据
+        origin_data = dbf.get_disc_from_document(save_path, charge_features, key_length=length, sign='_')
+        # 遍历所有保存数据
+        for i in range(len(data)):
+            # 拼出对比内容
+            charge_content = dbf.gather_string_with_list(data[i], charge_features, '_')
+            # 更新或者添加内容
+            origin_data[charge_content] = dbf.get_values_of_list(data[i], upload_features)
+            # 保存字典数据
+            dbf.basic_save_dict_data(origin_data, save_path, length > 1, len(upload_features) > 1)
+
+    elif save_type == 'save':
+        # 直接保存数据
+        with open(save_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(data)
+

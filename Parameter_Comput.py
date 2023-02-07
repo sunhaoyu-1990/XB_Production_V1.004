@@ -1476,6 +1476,17 @@ def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, station_fl
                                                                  last_station_dict[out_data[i]] + '_' +
                                                                  last_gantry[:-2],
                                                                  this_time, station_flow_history_dict_out, 'station_out')
+        # 判断是否为空数组，并保存异常数据
+        if last_gantry_flow:
+            dop.save_data_of_important([last_gantry, this_time], './error/loss_data.csv', 'check_save', [0], [1])
+        if this_gantry_flow:
+            dop.save_data_of_important([out_data[i], this_time], './error/loss_data.csv', 'check_save', [0], [1])
+        if station_in_flow:
+            dop.save_data_of_important([last_station_dict[out_data[i]] + '_' + out_data[i][:-2], this_time],
+                                       './error/loss_data.csv', 'check_save', [0], [1])
+        if station_out_flow:
+            dop.save_data_of_important([last_station_dict[out_data[i]] + '_' + last_gantry[:-2], this_time],
+                                       './error/loss_data.csv', 'check_save', [0], [1])
         # 计算未来半个小时后的承载量
         try:
             future_have_num = now_have_num[out_data[i]] + dbf.compute_dict_by_group(last_gantry_flow, [], 'total_sum',
@@ -1485,8 +1496,6 @@ def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, station_fl
                                                         '') - dbf.compute_dict_by_group(station_out_flow, [],
                                                                                         'total_sum', '')
         except:
-            #
-
             future_have_num = 0
 
         # 判断是否超出阈值
