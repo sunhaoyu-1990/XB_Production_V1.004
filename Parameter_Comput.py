@@ -888,6 +888,7 @@ def check_gantry_flow_data_after_revise():
 '''
 
 
+@dbf.timeIf_wrapper
 def charge_congestion_with_speed(data_speed, time_point, data_flow, threshold_data, target='XB', threshold=1,
                                  gantrys=None):
     """
@@ -959,6 +960,7 @@ def charge_congestion_with_speed(data_speed, time_point, data_flow, threshold_da
 '''
 
 
+@dbf.timeIf_wrapper
 def charge_congestion_with_flow_curve(old_inout_data_in, old_inout_data_out, new_inout_data, gantry_back_data,
                                       target='XB', gantrys=None):
     """
@@ -1069,6 +1071,7 @@ def charge_congestion_level_by_length(have_data, charge_gantry, distance_data):
 '''
 
 
+@dbf.timeIf_wrapper
 def compute_num_of_gantry(flow_data, now_station_flow_vType_dict, last_time_num, gantry_back_data, last_station_dict,
                           this_time, province_gantrys, gantrys=None):
     """
@@ -1113,7 +1116,12 @@ def compute_num_of_gantry(flow_data, now_station_flow_vType_dict, last_time_num,
             pass
         else:
             for i in range(len(last_gantrys)):
-                if len(gantry_back_data[last_gantrys[i]]) == 1 and last_gantrys[i] not in province_gantrys:
+                # 获取上上个门架信息
+                # try:
+                #     last_last_gantry = gantry_back_data[last_gantrys[i]]
+                # except:
+                #     last_last_gantry = gantry_back_data[last_gantrys[i]]
+                if last_gantrys[i] not in province_gantrys and len(gantry_back_data[last_gantrys[i]]) == 1:
                     pass
                 elif last_gantrys[i] not in gantrys:
                     continue
@@ -1152,7 +1160,7 @@ def compute_num_of_gantry(flow_data, now_station_flow_vType_dict, last_time_num,
                 last_station_num = 0
             try:
                 # changed at 2023/01/30
-                last_station_num_maybe = int(float(now_station_flow_vType_dict[last_station + '_1_'][i]) / 2)
+                last_station_num_maybe = int(float(now_station_flow_vType_dict[last_station + '_1_0'][i]) / 2)
             except:
                 last_station_num_maybe = 0
             in_num[vType[0]] = last_gantry_num + last_station_num + last_station_num_maybe
@@ -1202,7 +1210,7 @@ def compute_num_of_gantry(flow_data, now_station_flow_vType_dict, last_time_num,
             out_num[vType[0]] = last_gantry_num + last_station_num + last_station_num_maybe
             # 1.5)获取之前该路段之前的车辆保有量
             try:
-                last_num = float(last_time_num[gantry + '_' + vType[0]])
+                last_num = float(last_time_num[gantry][i])
             except:
                 last_num = 0
             # 1.6)进行该路段的各车型承载量计算
@@ -1415,6 +1423,7 @@ def compute_XB_gantry_num():
 '''
 
 
+@dbf.timeIf_wrapper
 def charge_congestion_by_haveNum(now_have_num, this_time, basic_data, station_flow_history_dict_in,
                                  station_flow_history_dict_out, gantry_back_data,
                                  last_station_dict, province_gantrys, gantrys=[]):
@@ -1819,6 +1828,7 @@ def compute_future_flow_of_gantry_station(compute_no, key_name, this_time, basic
 '''
 
 
+@dbf.timeIf_wrapper
 def charge_congestion_level_by_result(congestion_charge_speed, congestion_charge_flow, congestion_charge_have,
                                       gantry_have_data, this_time):
     """
@@ -1977,83 +1987,46 @@ def get_last_flow_data(data, this_time):
     return data_dict
 
 
-if __name__ == '__main__':
-    # quick()
+'''
+    创建时间：2023/2/8
+    完成时间：2023/2/8
+    功能：针对门架和收费站原始数据进行特征转换
+    关键词：
+    修改时间：
+'''
 
-    # statistic the time of two gantry
-    # path_list = []
-    # # paths = dop.path_of_holder_document('./2.Middle_Data/202207', True)
-    # paths = dop.path_of_holder_document('./2.Middle_Data/202207', True)
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202206', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202205', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202204', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202203', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202202', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202201', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202112', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202111', True))
-    # paths.extend(dop.path_of_holder_document('./2.Middle_Data/202110', True))
-    # data = []
-    # for path in paths:
-    #     if '20211008' < path[-12:-4] < '20220730':
-    #         path_list.append(path)
-    # # dbf.get_result_from_data_with_colValue(path_list, ['收费单元路径'], )
-    # result = get_list_of_gantry_path(paths, '门架路径', '门架时间串', '入口车型', '出口车型', 'dict')
-    #
-    # statistic_time_between_gantrys(result)
-    #
-    # gantrys = ["G003061003000120", "G003061003000210", "G003061003000120", "G003061003000310", "G003061003000220",
-    #            "G003061003000410", "G003061003000320", "G003061003000510", "G003061003000420", "G003061003000520",
-    #            "G003061003000710", "G003061003000720", "G003061003000810", "G003061003000820", "G003061003001310",
-    #            "G003061003001320", "G003061003001410", "G003061003001420"]
-    #
-    # get_data_of_two_gantry_have(path_list, )
-    #
-    # statistic_the_two_gantry_data()
 
-    # get_real_flow_with_time_revise(path_list)
+@dbf.timeIf_wrapper
+def get_feature_of_flow(data, target='gantrys'):
+    """
+    针对门架和收费站原始数据进行特征转换
+    :param DataFrame data: 输入数据
+    :param target:
+    :return:
+    """
+    columns = ['gantry_time', "CAR1_FLOW", "CAR2_FLOW", "CAR3_FLOW", "CAR4_FLOW", "TRUCK1_FLOW", "TRUCK2_FLOW",
+               "TRUCK3_FLOW", "TRUCK4_FLOW", "TRUCK5_FLOW", "TRUCK6_FLOW"]
+    if target == 'gantrys':
+        data['TIME_POINT'] = data['TIME_POINT'].astype(str)
+        data['gantry_time'] = data['INTERVAL_ID'] + '_' + data['TIME_POINT']
+        data = data[columns]
+        data = data.set_index('gantry_time', drop=True).unstack()
+        data = data.reset_index()
+        data.columns = ['VEHICLE_TYPE', 'gantry_time', 'FLOW']
+        data['INTERVAL_ID'] = data['gantry_time'].map(lambda x: x.split('_')[0])
+        data = data[['VEHICLE_TYPE', 'INTERVAL_ID', 'FLOW']]
+    else:
+        data[['TIME_POINT', 'DIRECT', 'CLOSEST_GANTRY_ID']] = data[
+            ['TIME_POINT', 'DIRECT', 'CLOSEST_GANTRY_ID']].astype(str)
+        data['gantry_time'] = data['STATION_ID'] + '_' + data['TIME_POINT'] + '_' + data['DIRECT'] + '_' + \
+                                               data['CLOSEST_GANTRY_ID']
+        data = data[columns]
+        data = data.set_index('gantry_time', drop=True).unstack()
+        data = data.reset_index()
+        data.columns = ['VEHICLE_TYPE', 'gantry_time', 'FLOW']
+        data['STATION_ID'] = data['gantry_time'].map(lambda x: x.split('_')[0])
+        data['DIRECT'] = data['gantry_time'].map(lambda x: x.split('_')[2])
+        data['CLOSEST_GANTRY_ID'] = data['gantry_time'].map(lambda x: x.split('_')[3])
+        data = data[['VEHICLE_TYPE', 'STATION_ID', 'DIRECT', 'CLOSEST_GANTRY_ID', 'FLOW']]
 
-    # chect_the_flow_data()
-    # gantrys = ["G003061003000120", "G003061003000210", "G003061003000110", "G003061003000310", "G003061003000220",
-    #            "G003061003000410", "G003061003000320", "G003061003000510", "G003061003000420", "G003061003000520",
-    #            "G003061003000710", "G003061003000720", "G003061003000810", "G003061003000820", "G003061003001310",
-    #            "G003061003000610", "G003061003000620", "G003061003000910", "G003061003000920", "G003061003001010",
-    #            "G003061003001020", "G003061003001120", "G003061003001110", "G003061003001220", "G003061003001210",
-    #            "G003061003001320", "G003061003001410", "G003061003001420", "G003061003001510", "G003061003001520",
-    #            "G003061003001610", "G003061003001620", "G003061003001710", "G003061003001720"]
-    paths = dop.path_of_holder_document('./1.Gantry_Data/202205/gantry_path/', True)
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202109/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202110/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202111/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202112/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202201/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202202/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202203/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202204/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202205/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202206/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202207/gantry_path/', True))
-    # paths.extend(dop.path_of_holder_document('./1.Gantry_Data/202208/gantry_path/', True))
-
-    # get_real_flow_with_time_revise(paths, filter_id=gantrys)
-    get_real_flow_with_time_revise(paths)
-
-    # check_gantry_flow_data_after_revise()
-
-    # get_feature_of_flow_calculate('./4.data_check/enStation_flow/enStation_go_type_flow.csv', 'enStation')
-
-    # train_neuralNetwork_model('./4.data_check/cangestion/flow_sample_data.csv')
-
-    # train_neuralNetwork_model('./4.data_check/cangestion/flow_sample_data.csv')
-    # train_neuralNetwork_model('./4.data_check/enStation_flow/flow_sample_data_enStation.csv', 'station_in')
-    # train_neuralNetwork_model('./4.data_check/exStation_flow/flow_sample_data_exStation.csv', 'station_out')
-
-    # compute_history_num_of_gantry('2022-05-01', '2022-08-18')
-
-    # compute_avg_data_of_speed()
-
-    # compute_DTW_of_gantrys('2022-08-05', '2022-08-08')
-
-    # get_DTW_threshold_of_gantrys(0.008)
-
-    # get_have_threshold_of_gantrys()
+    return data

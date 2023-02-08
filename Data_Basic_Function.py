@@ -5,9 +5,11 @@
 """
 import csv
 import random
+from functools import wraps
 
 import numpy as np
 import datetime
+import time
 import pandas as pd
 import dtw
 import sys
@@ -196,13 +198,35 @@ def compute_with_disc(disc_list, key_list, function='add', key_add='', parameter
 
 
 '''
-    修改时间：No.1 2022/3/16，增加了输入参数ifIndex，增加了新功能，即当输入直接为下标时的处理
-            No.2 2022/4/22，添加了备注
-            No.3 2022/9/8, add feature filter
+    创建时间：2023/2/8
+    完成时间：2023/2/8
+    功能：计算每个函数的用时
+    关键词：
+    修改时间：
 '''
 
 
-def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, length=0, key_length=1, ifIndex=True,
+def timeIf_wrapper(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()  # pref_counter绝对时间，process_time只为进程时间
+        func_return_val = func(*args, **kwargs)
+        end = time.perf_counter()
+        print('{0:<10}.{1:<8}:{2:<8}'.format(func.__module__, func.__name__, end - start))
+        return func_return_val
+    return wrapper
+
+
+'''
+    修改时间：No.1 2022/3/16，增加了输入参数ifIndex，增加了新功能，即当输入直接为下标时的处理
+            No.2 2022/4/22，添加了备注
+            No.3 2022/9/8, add feature filter
+            No.4 2023/2/8，增加了对每个key的长度控制
+'''
+
+
+@timeIf_wrapper
+def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, length=None, key_length=1, ifIndex=True,
                            key_for_N_type='disc', value_com_type='list', sign='-', input_type='path',
                            filter_feature=None, filter_value=None, ifNoCol=False, ):
     """
@@ -216,7 +240,7 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
     :param str key_for_N_type:如果数据中有一个key对应多个值的情况，则多个值的集合格式，dict为集合，其他为数组
     :param bool ifIndex:输入的features是索引还是字典名称
     :param int key_length: key值需要拼接的字段数量
-    :param int length:每个字段的截取长度值
+    :param list length:每个字段的截取长度值
     :param bool key_for_N:数据中是否有一个key对应多个值的情况，TRUE为存在，FALSE为不存在
     :param str encoding: 文件解码方式，默认为gbk
     :param str or list path: 文件地址，当input_type为'list'时，path为数组类型
@@ -268,14 +292,14 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
                         # 创建key_string，用于将各字段拼成key
                         key_string = ''
                         # 判断是否截取每个字段的值
-                        if length != 0:
+                        if length is not None:
                             # 进行循环拼接
                             for j in range(key_length):
                                 # 最后一个元素之前的结尾拼接‘-’
                                 if j < key_length - 1:
-                                    key_string = key_string + row[index_list[j]][:length] + sign
+                                    key_string = key_string + row[index_list[j]][:length[j]] + sign
                                 else:
-                                    key_string = key_string + row[index_list[j]][:length]
+                                    key_string = key_string + row[index_list[j]][:length[j]]
                         else:
                             for j in range(key_length):
                                 if j < key_length - 1:
@@ -284,8 +308,8 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
                                     key_string = key_string + row[index_list[j]]
                     # 如果key只需要一个字段值
                     else:
-                        if length != 0:
-                            key_string = row[index_list[0]][:length]
+                        if length is not None:
+                            key_string = row[index_list[0]][:length[0]]
                         else:
                             key_string = row[index_list[0]]
                     # 判断字段的value值是否是多个字段组成，如果是多个，则将其放入一个数组中
@@ -349,14 +373,14 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
                     # 创建key_string，用于将各字段拼成key
                     key_string = ''
                     # 判断是否截取每个字段的值
-                    if length != 0:
+                    if length is not None:
                         # 进行循环拼接
                         for j in range(key_length):
                             # 最后一个元素之前的结尾拼接‘-’
                             if j < key_length - 1:
-                                key_string = key_string + data[i][index_list[j]][:length] + sign
+                                key_string = key_string + data[i][index_list[j]][:length[j]] + sign
                             else:
-                                key_string = key_string + data[i][index_list[j]][:length]
+                                key_string = key_string + data[i][index_list[j]][:length[j]]
                     else:
                         for j in range(key_length):
                             if j < key_length - 1:
@@ -365,8 +389,8 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
                                 key_string = key_string + data[i][index_list[j]]
                 # 如果key只需要一个字段值
                 else:
-                    if length != 0:
-                        key_string = data[i][index_list[0]][:length]
+                    if length is not None:
+                        key_string = data[i][index_list[0]][:length[0]]
                     else:
                         key_string = data[i][index_list[0]]
                 # 判断字段的value值是否是多个字段组成，如果是多个，则将其放入一个数组中
@@ -414,14 +438,14 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
                 # 创建key_string，用于将各字段拼成key
                 key_string = ''
                 # 判断是否截取每个字段的值
-                if length != 0:
+                if length is not None:
                     # 进行循环拼接
                     for j in range(key_length):
                         # 最后一个元素之前的结尾拼接‘-’
                         if j < key_length - 1:
-                            key_string = key_string + str(data[i][index_list[j]])[:length] + sign
+                            key_string = key_string + str(data[i][index_list[j]])[:length[j]] + sign
                         else:
-                            key_string = key_string + str(data[i][index_list[j]])[:length]
+                            key_string = key_string + str(data[i][index_list[j]])[:length[j]]
                 else:
                     for j in range(key_length):
                         if j < key_length - 1:
@@ -430,8 +454,8 @@ def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, leng
                             key_string = key_string + str(data[i][index_list[j]])
             # 如果key只需要一个字段值
             else:
-                if length != 0:
-                    key_string = str(data[i][index_list[0]])[:length]
+                if length is not None:
+                    key_string = str(data[i][index_list[0]])[:length[0]]
                 else:
                     key_string = str(data[i][index_list[0]])
             # 判断字段的value值是否是多个字段组成，如果是多个，则将其放入一个数组中

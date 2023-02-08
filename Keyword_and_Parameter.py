@@ -27,6 +27,17 @@ def get_parameter_with_keyword(keys):
                     config_mysql[row[0]] = int(row[1])
                 else:
                     config_mysql[row[0]] = row[1]
+    with open('./upload/config_oracle.txt') as f:
+        for i, row in enumerate(f):
+            if row == '':
+                break
+            else:
+                row = row.split(':')
+                row[-1] = row[-1][:-1]
+                if row[0] == 'port':
+                    config_oracle[row[0]] = int(row[1])
+                else:
+                    config_oracle[row[0]] = row[1]
 
     parameter_disc = {
         # 门架数据清洗各关键字和对应参数

@@ -476,10 +476,12 @@ def update_data_of_mysql(db_name, table_name, change_feature, change_value, comp
 '''
 
 
+@dbf.timeIf_wrapper
 def load_data_from_mysql(db_name, table_name, feature_name, feature_value, compare_sign, get_feature='all',
-                         return_type='list', addSQL=''):
+                         return_type='list', addSQL='', sql_type='mysql'):
     """
     进行数据库的数据获取
+    :param sql_type:
     :param addSQL:
     :param str db_name: database name
     :param str return_type: 数据库获取的数据的返回形式
@@ -524,6 +526,8 @@ def load_data_from_mysql(db_name, table_name, feature_name, feature_value, compa
                     else:
                         where_string += ', "' + str(feature_value[i][j]) + '"'
                 where_string += ')'
+            else:
+                where_string += feature_name[i] + ' ' + compare_sign[i] + ' ' + str(feature_value[i])
     if where_string == '':
         sql_string = "SELECT " + feature_string + " from " + table_name
     else:
@@ -537,7 +541,7 @@ def load_data_from_mysql(db_name, table_name, feature_name, feature_value, compa
     # 创建数据库连接
     database_parameter = kp.get_parameter_with_keyword(db_name)
     db = gd.OperationMysql(database_parameter["host"], database_parameter["port"], database_parameter["user"],
-                           database_parameter["passwd"], database_parameter["db"])
+                           database_parameter["passwd"], database_parameter["db"], sql_type)
 
     # 查询数据
     output_data = db.load_data(sql_string)
@@ -556,6 +560,7 @@ def load_data_from_mysql(db_name, table_name, feature_name, feature_value, compa
 '''
 
 
+@dbf.timeIf_wrapper
 def write_data_to_mysql(upload_data, db_name, table_name, feature_name, feature_type, mysql_type):
     """
 

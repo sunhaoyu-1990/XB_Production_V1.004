@@ -61,15 +61,8 @@ class OperationMysql:
             # 使用cursor()方法创建一个游标对象，用于操作数据库
             self.cur = self.conn.cursor()
         else:
-            self.conn = cx.connect(
-                host=host,
-                port=port,  # 数据库端口号
-                user=user,  # 数据库登录用户名
-                passwd=passwd,
-                db=db_name,  # 数据库名称
-                charset='utf8',  # 连接编码
-                cursorclass=pymysql.cursors.DictCursor
-            )
+            # self.conn = cx.connect(user, passwd, host + '/' + db_name, encoding='utf8')
+            self.conn = cx.connect(user, passwd, host + ':' + str(port) + '/' + db_name)
             # 使用cursor()方法创建一个游标对象，用于操作数据库
             self.cur = self.conn.cursor()
 

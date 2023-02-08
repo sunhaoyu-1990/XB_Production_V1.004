@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../Sparse_Production/.idea/Sparse_Production.iml" filepath="$PROJECT_DIR$/../Sparse_Production/.idea/Sparse_Production.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../Vehicle_Check_Code/.idea/Vehicle_Check_Code.iml" filepath="$PROJECT_DIR$/../../Vehicle_Check_Code/.idea/Vehicle_Check_Code.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/XB_Production.iml" filepath="$PROJECT_DIR$/.idea/XB_Production.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../爬虫/.idea/爬虫.iml" filepath="$PROJECT_DIR$/../../爬虫/.idea/爬虫.iml" />
