@@ -41,10 +41,11 @@ new_station_flow_history = []
 
 # 基础参数获取类
 class parameter:
-    Gantrys = mop.load_data_from_mysql('overspeed_oracle', 'TOLLINTERVAL', ['VERTICALSECTIONTYPE'], [1], ['='],
-                                       get_feature=['ID'], sql_type='oracle').values
-    Gantrys = Gantrys.tolist()
-    Gantrys = [i[0] for i in Gantrys]
+    interval_data = mop.load_data_from_mysql('overspeed_oracle', 'TOLLINTERVAL', ['VERTICALSECTIONTYPE'], [1], ['='],
+                                             get_feature=['ID', 'ENTOLLSTATION', 'STARTSTAKENUM', 'ENDSTAKENUM'],
+                                             sql_type='oracle').values
+    # Gantrys = interval_data['ID'].tolist()
+    Gantrys = [i[0] for i in interval_data]
 
     Stations = mop.load_data_from_mysql('overspeed_oracle', 'TOLLSTATION', [], [], [], get_feature=['ID'],
                                         sql_type='oracle').values
@@ -56,24 +57,30 @@ class parameter:
                                                   encoding='gbk', key_for_N=True, key_for_N_type='list')
 
     # 获取收费单元和上一个收费站的对应关系字典
-    last_station_dict = dbf.get_disc_from_document('./Data_Origin/tollinterval.csv',
-                                                   ['id', 'enTollStation'], encoding='utf-8', key_for_N=False)
+    last_station_dict = dbf.get_disc_from_document(interval_data, [0, 1],
+                                                   encoding='utf-8', key_for_N=False, input_type='list')
 
     # 获取收费单元start stake字典
-    start_stake_dict = dbf.get_disc_from_document('./Data_Origin/tollinterval.csv', ['id', 'startStakeNum'],
-                                                  encoding='utf-8', key_for_N=False, key_for_N_type='list')
+    start_stake_dict = dbf.get_disc_from_document(interval_data, [0, 2],
+                                                  encoding='utf-8', key_for_N=False, key_for_N_type='list',
+                                                  input_type='list')
 
     # 获取收费单元end stake字典
-    end_stake_dict = dbf.get_disc_from_document('./Data_Origin/tollinterval.csv', ['id', 'endStakeNum'],
-                                                encoding='utf-8', key_for_N=False, key_for_N_type='list')
+    end_stake_dict = dbf.get_disc_from_document(interval_data, [0, 3],
+                                                encoding='utf-8', key_for_N=False, key_for_N_type='list',
+                                                input_type='list')
 
     # 获取各路段的速度阈值
     speed_threshold_data = dbf.get_disc_from_document('./statistic_data/basic_data/gantry_speed_threshold.csv',
                                                       ['id', 'speed'], encoding='utf-8', key_for_N=False)
 
     # 获取入省省界门架ID集
-    province_gantry = da.get_data_some_col_have_save_value(['./Data_Origin/tollinterval.csv'], ['provinceType'], ['2'],
-                                                           ['='], ifIndex=False, ifSave=False, save_columns=['id'])
+    # province_gantry = da.get_data_some_col_have_save_value(['./Data_Origin/tollinterval.csv'], ['provinceType'], ['2'],
+    #                                                        ['='], ifIndex=False, ifSave=False, save_columns=['id'])
+    province_gantry = mop.load_data_from_mysql('overspeed_oracle', 'TOLLINTERVAL', ['PROVINCETYPE'], [1], ['='],
+                                               get_feature=['ID'], sql_type='oracle').values
+    province_gantry = province_gantry.tolist()
+    province_gantry = [i[0] for i in province_gantry]
 
 
 '''
@@ -171,9 +178,7 @@ def start_function_by_period():
         end_stake_dict, speed_threshold_data, province_gantry
     if start_num == 0:
         gantrys = vars(parameter)['Gantrys']
-        # gantrys = ['G000561001000110', 'G000561001000210']
         stations = vars(parameter)['Stations']
-        # stations = ['G0005610010010', 'G0005610010110']
         gantry_back_data = vars(parameter)['gantry_back_data']
         last_station_dict = vars(parameter)['last_station_dict']
         start_stake_dict = vars(parameter)['start_stake_dict']
@@ -199,6 +204,7 @@ def start_function_by_period():
         compute_level_of_congestion(next_time, now_station_flow_data, now_flow_data)
     print('end the update time check-------------------', time.strftime('%Y-%m-%d %H:%M:%S',
                                                                         time.localtime(time.time())))
+    return next_time
 
 
 '''
@@ -355,6 +361,7 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
                                                                   'CLOSEST_GANTRY_ID'])['FLOW'].apply(
             lambda x: list(x)).reset_index()
         old_inout_data_ls = old_inout_data.groupby(['INTERVAL_ID'])['IN_TOTAL'].count().reset_index()
+        print(len(station_flow_history_dict.iloc[0, 2]))
         # 如果历史数据满足数据量要求，即进行拥堵等级判定
         if len(flow_history_dict.iloc[0, 2]) < 48 or old_inout_data_ls.iloc[0, 1] < 13 or \
                 len(station_flow_history_dict.iloc[0, 2]) < 48:
@@ -367,12 +374,12 @@ def compute_level_of_congestion(time_point, now_station_flow_data, now_flow_data
             station_flow_history_dict_in = station_flow_history_dict[station_flow_history_dict['DIRECT'] == '1']
             station_flow_history_dict_out = station_flow_history_dict[station_flow_history_dict['DIRECT'] == '2']
             station_flow_history_dict_in = dbf.get_disc_from_document(station_flow_history_dict_in.values,
-                                                                      [0, 3, 2, 4], key_length=4, sign='_',
-                                                                      ifIndex=False, key_for_N=False, encoding='utf-8',
+                                                                      [0, 3, 2, 4], key_length=3, sign='_',
+                                                                      length=[14, 1, 14], ifIndex=False, key_for_N=False, encoding='utf-8',
                                                                       input_type='list')
             station_flow_history_dict_out = dbf.get_disc_from_document(station_flow_history_dict_out.values,
-                                                                       [0, 3, 2, 4], key_length=4, sign='_',
-                                                                       ifIndex=False, key_for_N=False, encoding='utf-8',
+                                                                       [0, 3, 2, 4], key_length=3, sign='_',
+                                                                       length=[14, 1, 14], ifIndex=False, key_for_N=False, encoding='utf-8',
                                                                        input_type='list')
             congestion_upload = 1
             # 将流入流出数据转换为字典
@@ -562,4 +569,6 @@ if __name__ == '__main__':
     #     data_station_ls = data_station[data_station['TIME_POINT'] == ti]
     #     compute_level_of_congestion(ti, data_station_ls, data_gantry_ls)
     while True:
-        start_function_by_period()
+        next_time = start_function_by_period()
+        # if next_time > '2021-07-01 07:55:00':
+        #     break

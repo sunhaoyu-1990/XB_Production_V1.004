@@ -228,7 +228,7 @@ def timeIf_wrapper(func):
 @timeIf_wrapper
 def get_disc_from_document(path, features, encoding='gbk', key_for_N=False, length=None, key_length=1, ifIndex=True,
                            key_for_N_type='disc', value_com_type='list', sign='-', input_type='path',
-                           filter_feature=None, filter_value=None, ifNoCol=False, ):
+                           filter_feature=None, filter_value=None, ifNoCol=False):
     """
     根据文件地址读取文件，并将所需的字段，以字典的对应形式返回
     :param ifNoCol:
